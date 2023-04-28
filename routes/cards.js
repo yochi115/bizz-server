@@ -7,7 +7,7 @@ const cardSchema = joi.object({
   name: joi.string().required().min(2),
   Description: joi.string().required(),
   Address: joi.string().required(),
-  phone: joi.number().required(),
+  phone: joi.string().required(),
   image: joi.string().required(),
   userId: joi.string(),
 });
@@ -47,6 +47,18 @@ router.get("/", auth, async (req, res) => {
     res.status(400).send(error);
   }
 });
+
+router.get("/cards/:_id", auth, async (req, res) => {
+  try {
+    if (!req.payload.isBussines)
+      return res.status(400).send("Access denied. No Buisness-Man permission");
+    let card = await Card.findOne({ _id: req.params._id });
+    if (!card) return res.status(404).send("No such card");
+    res.status(200).send(card);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
 router.get("/:userId", auth, async (req, res) => {
   try {
     let card = await Card.find({ userId: req.params.userId });
@@ -59,7 +71,7 @@ router.get("/:userId", auth, async (req, res) => {
 router.put("/:cardId", auth, async (req, res) => {
   try {
     // check if user bizz
-    if (!req.payload. isBussines)
+    if (!req.payload.isBussines)
       return res.status(400).send("Access denied. No bizz permission");
     // joi validation
     const { error } = cardSchema.validate(req.body);
@@ -78,7 +90,7 @@ router.put("/:cardId", auth, async (req, res) => {
 });
 router.delete("/:cardId", auth, async (req, res) => {
   try {
-    if (!req.payload. isBussines)
+    if (req.payload. isBussines)
       return res.status(400).send("Access denied. No admin permission");
     let card = await Card.findOneAndRemove({ _id: req.params.cardId });
     // let card = await Card.findById(req.params.cardId);
@@ -88,4 +100,6 @@ router.delete("/:cardId", auth, async (req, res) => {
     res.status(400).send(error);
   }
 });
+
+
 module.exports = router;
